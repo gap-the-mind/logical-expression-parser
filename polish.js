@@ -8,8 +8,8 @@ const PolishNotation = tokens => {
       case TokenType.LITERAL:
         queue.unshift(token);
         break;
-      case TokenType.BINARY_AND:
-      case TokenType.BINARY_OR:
+      case TokenType.AND:
+      case TokenType.OR:
       case TokenType.OP_NOT:
       case TokenType.PAR_OPEN:
         stack.push(token);

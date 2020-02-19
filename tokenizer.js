@@ -1,39 +1,44 @@
 const TokenType = require('./token-type');
 
-const Tokenizer = exp => {
+const Tokenizer = (exp) => {
   let literal = '';
   const tokens = [];
+
+  const addToken = (type, value) => tokens.push({ type, value });
+
+  const addTokenFromLiteral = () => {
+    if (literal !== '') {
+      const code = literal.trim().toUpperCase();
+      switch (code) {
+        case TokenType.AND:
+        case TokenType.OR:
+          addToken(code, literal);
+          break;
+        default:
+          addToken(TokenType.LITERAL, literal);
+      }
+      literal = '';
+    }
+  };
+
   for (const char of exp) {
-    const code = char.charCodeAt(0);
-    switch (code) {
+    switch (char) {
       case TokenType.PAR_OPEN:
       case TokenType.PAR_CLOSE:
-      case TokenType.OP_NOT:
-      case TokenType.BINARY_AND:
-      case TokenType.BINARY_OR:
-        if (literal) {
-          tokens.push({
-            type: TokenType.LITERAL,
-            value: literal
-          });
-          literal = '';
-        }
-
-        tokens.push({
-          type: code,
-          value: char
-        });
+      // case TokenType.OP_NOT:
+        addTokenFromLiteral();
+        addToken(char, char);
         break;
       default:
-        literal += char;
+        if (/\s/g.test(char)) {
+          addTokenFromLiteral();
+        } else {
+          literal += char;
+        }
     }
   }
 
-  if (literal)
-    tokens.push({
-      type: TokenType.LITERAL,
-      value: literal
-    });
+  addTokenFromLiteral();
 
   return tokens;
 };

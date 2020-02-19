@@ -2,13 +2,13 @@ const Tokenizer = require('./tokenizer');
 const Polish = require('./polish');
 const Node = require('./node');
 
-const parse = (exp, literalChecker) => {
+const ast = (exp) => {
   const tokens = Tokenizer(exp);
   const polish = Polish.PolishNotation(tokens);
   const gen = Polish.PolishGenerator(polish);
-  const tree = Node.make(gen);
-  const result = Node.nodeEvaluator(tree, literalChecker);
-  return result;
+  return Node.make(gen);
 };
 
-module.exports = { parse };
+const parse = (exp, literalChecker) => Node.evaluate(ast(exp), literalChecker);
+
+module.exports = { ast, parse };

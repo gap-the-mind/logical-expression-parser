@@ -1,28 +1,46 @@
-# Logical Expression Parser
+# Logical Expression Parser (Fork)
 This is a logical expression parser for JavaScript, it can parse a logical expression into a AST object and evaluates the result using your token checking function.
 
 ## Supported logical operators
-1. `|` Or
-1. `&` And
-1. `!` Not
+1. `OR`
+1. `AND`
 1. `()` Parentheses
 
 ## How it works
-1. The parser parse and tokenize the expression, for example one of your function requires `REGISTED&(SPECIAL|INVITED)`
+1. The parser parse and tokenize the expression, for example one of your function requires `REGISTED AND (SPECIAL OR INVITED)`
 1. Parser then will pass `REGISTED`, `SPECIAL` and `INVITED` into your token checking function to get a boolean result
 1. Finaly the parser will evaluates the final result
 
 ## Example
 ```javascript
-const LEP = require('logical-expression-parser');
+const LEP = require('@jeanbenitez/lep');
 
-const REQUIREMENTS = 'REGISTED&(SPECIAL|INVITED)';
-const LIST_A = ['REGISTED', 'INVITED'];
-const LIST_B = ['SPECIAL', 'EXPERT'];
+const requirements = 'REGISTED AND (SPECIAL OR INVITED)';
+const listA = ['REGISTED', 'INVITED'];
+const listB = ['SPECIAL', 'EXPERT'];
 
-const RESULT_A = LEP.parse(REQUIREMENTS, t => LIST_A.indexOf(t) > -1);
-const RESULT_B = LEP.parse(REQUIREMENTS, t => LIST_B.indexOf(t) > -1);
+const resultA = LEP.parse(requirements, t => listA.includes(t));
+const resultB = LEP.parse(requirements, t => listB.includes(t));
+console.log({ resultA, resultB });
+// { resultA: true, resultB: false }
 
-// RESULT_A: true
-// RESULT_B: false
+// Getting AST only
+const ast = LEP.ast(requirements);
+console.log({ ast });
+/*
+  {
+    ast: ExpNode {
+      op: 'AND',
+      left: ExpNode {
+        op: 'LITERAL',
+        literal: 'REGISTED'
+      },
+      right: ExpNode {
+        op: 'OR',
+        left: [ExpNode],
+        right: [ExpNode]
+      }
+    }
+  }
+*/
 ```

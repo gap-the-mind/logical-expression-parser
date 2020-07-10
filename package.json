@@ -1,8 +1,23 @@
 {
-  "name": "logical-expression-parser",
+  "name": "@gap-the-mind/logical-expression-parser",
   "version": "1.0.0",
   "description": "Logical expression parser and evaluates result, suitable for permissions management",
-  "main": "index.js",
-  "author": "NimitzDEV",
-  "license": "MIT"
+  "author": "Matthieu Dartiguenave <matthieu.dartiguenave@gmail.com>",
+  "contributors": [
+    "Initial Release <NimitzDEV> (https://github.com/NimitzDEV/logical-expression-parser)",
+    "Fork <jeanbenitez> (https://github.com/jeanbenitez/logical-expression-parser)"
+  ],
+  "repository": {
+    "url": "https://github.com/gap-the-mind/logical-expression-parser",
+    "type": "git"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepublish": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.6"
+  }
 }

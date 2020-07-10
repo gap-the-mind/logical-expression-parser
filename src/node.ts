@@ -1,92 +1,104 @@
-const TokenType = require('./token-type');
+import { TokenType, LiteralChecker, Token } from "./token-type"
 
 class ExpNode {
-  constructor(op, left, right, literal) {
-    this.op = op;
-    if (left) { this.left = left; }
-    if (right) { this.right = right; }
-    if (literal) { this.literal = literal; }
+  public op: string
+  public left?: ExpNode
+  public right?: ExpNode
+  public literal?: string
+
+  constructor(op: string, left?: ExpNode, right?: ExpNode, literal?: string) {
+    this.op = op
+    if (left) {
+      this.left = left
+    }
+    if (right) {
+      this.right = right
+    }
+    if (literal) {
+      this.literal = literal
+    }
   }
 
   isLiteral() {
-    return this.op === TokenType.LITERAL;
+    return this.op === TokenType.LITERAL
   }
 
   getLiteralValue() {
-    return this.literal;
+    return this.literal
   }
 
-  static CreateAnd(left, right) {
-    return new ExpNode(TokenType.AND, left, right);
+  static CreateAnd(left: ExpNode, right: ExpNode) {
+    return new ExpNode(TokenType.AND, left, right)
   }
 
-  static CreateNot(exp) {
-    return new ExpNode(TokenType.OP_NOT, exp);
+  static CreateNot(exp: ExpNode) {
+    return new ExpNode(TokenType.OP_NOT, exp)
   }
 
-  static CreateOr(left, right) {
-    return new ExpNode(TokenType.OR, left, right);
+  static CreateOr(left: ExpNode, right: ExpNode) {
+    return new ExpNode(TokenType.OR, left, right)
   }
 
-  static CreateLiteral(lit) {
-    return new ExpNode(TokenType.LITERAL, undefined, undefined, lit);
+  static CreateLiteral(lit: string) {
+    return new ExpNode(TokenType.LITERAL, undefined, undefined, lit)
   }
 }
 
 // AST generation
-const make = gen => {
-  const data = gen.next().value;
+export function make(gen: IterableIterator<Token>): ExpNode {
+  const data = gen.next().value
 
   if (!data) {
     // TO DO: Throw Syntax Error
-    return null;
+    throw "Syntax Error"
   }
 
   switch (data.type) {
     case TokenType.LITERAL:
-      return ExpNode.CreateLiteral(data.value);
+      return ExpNode.CreateLiteral(data.value)
     case TokenType.OP_NOT:
-      return ExpNode.CreateNot(make(gen));
+      return ExpNode.CreateNot(make(gen))
     case TokenType.AND: {
-      const left = make(gen);
-      const right = make(gen);
-      return right ? ExpNode.CreateAnd(right, left) : ExpNode.CreateAnd(left);
+      const left = make(gen)
+      const right = make(gen)
+      return ExpNode.CreateAnd(right, left)
     }
     case TokenType.OR: {
-      const left = make(gen);
-      const right = make(gen);
-      return right ? ExpNode.CreateOr(right, left) : ExpNode.CreateOr(left);
+      const left = make(gen)
+      const right = make(gen)
+      return ExpNode.CreateOr(right, left)
     }
   }
-  return null;
-};
+
+  throw "Syntax Error"
+}
 
 // AST Evaluation
-const evaluate = (tree, literalEvaluator) => {
+export function evaluate(
+  tree: ExpNode,
+  literalEvaluator: LiteralChecker
+): boolean {
   if (tree.isLiteral()) {
-    return literalEvaluator(tree.getLiteralValue());
+    return literalEvaluator(tree.getLiteralValue() as string)
   }
 
   if (tree.op === TokenType.OP_NOT) {
-    return !evaluate(tree.left, literalEvaluator);
+    return !evaluate(tree.left as ExpNode, literalEvaluator)
   }
 
   if (tree.op === TokenType.OR) {
     return (
-      evaluate(tree.left, literalEvaluator) ||
-      evaluate(tree.right, literalEvaluator)
-    );
+      evaluate(tree.left as ExpNode, literalEvaluator) ||
+      evaluate(tree.right as ExpNode, literalEvaluator)
+    )
   }
 
   if (tree.op === TokenType.AND) {
     return (
-      evaluate(tree.left, literalEvaluator) &&
-      evaluate(tree.right, literalEvaluator)
-    );
+      evaluate(tree.left as ExpNode, literalEvaluator) &&
+      evaluate(tree.right as ExpNode, literalEvaluator)
+    )
   }
-};
 
-module.exports = {
-  make,
-  evaluate
-};
+  return false
+}

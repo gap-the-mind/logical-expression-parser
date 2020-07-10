@@ -1,46 +1,45 @@
-const TokenType = require('./token-type');
+import { TokenType, Token } from "./token-type"
 
-const Tokenizer = (exp) => {
-  let literal = '';
-  const tokens = [];
+export default (exp: string) => {
+  let literal = ""
+  const tokens: Token[] = []
 
-  const addToken = (type, value) => tokens.push({ type, value });
+  const addToken = (type: TokenType, value: string) =>
+    tokens.push({ type, value })
 
   const addTokenFromLiteral = () => {
-    if (literal !== '') {
-      const code = literal.trim().toUpperCase();
+    if (literal !== "") {
+      const code = literal.trim().toUpperCase()
       switch (code) {
         case TokenType.AND:
         case TokenType.OR:
-          addToken(code, literal);
-          break;
+          addToken(code, literal)
+          break
         default:
-          addToken(TokenType.LITERAL, literal);
+          addToken(TokenType.LITERAL, literal)
       }
-      literal = '';
+      literal = ""
     }
-  };
+  }
 
   for (const char of exp) {
     switch (char) {
       case TokenType.PAR_OPEN:
       case TokenType.PAR_CLOSE:
-      // case TokenType.OP_NOT:
-        addTokenFromLiteral();
-        addToken(char, char);
-        break;
+        // case TokenType.OP_NOT:
+        addTokenFromLiteral()
+        addToken(char, char)
+        break
       default:
         if (/\s/g.test(char)) {
-          addTokenFromLiteral();
+          addTokenFromLiteral()
         } else {
-          literal += char;
+          literal += char
         }
     }
   }
 
-  addTokenFromLiteral();
+  addTokenFromLiteral()
 
-  return tokens;
-};
-
-module.exports = Tokenizer;
+  return tokens
+}

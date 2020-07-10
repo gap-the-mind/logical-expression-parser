@@ -1,14 +1,15 @@
-const Tokenizer = require('./tokenizer');
-const Polish = require('./polish');
-const Node = require('./node');
+import Tokenizer from "./tokenizer"
+import { PolishNotation, PolishGenerator } from "./polish"
+import { evaluate, make } from "./node"
 
-const ast = (exp) => {
-  const tokens = Tokenizer(exp);
-  const polish = Polish.PolishNotation(tokens);
-  const gen = Polish.PolishGenerator(polish);
-  return Node.make(gen);
-};
+import { LiteralChecker } from "./token-type"
 
-const parse = (exp, literalChecker) => Node.evaluate(ast(exp), literalChecker);
+const ast = (exp: string) => {
+  const tokens = Tokenizer(exp)
+  const polish = PolishNotation(tokens)
+  const gen = PolishGenerator(polish)
+  return make(gen)
+}
 
-module.exports = { ast, parse };
+export const parse = (exp: string, literalChecker: LiteralChecker) =>
+  evaluate(ast(exp), literalChecker)

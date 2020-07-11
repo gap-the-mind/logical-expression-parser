@@ -1,6 +1,6 @@
 import { TokenType, LiteralChecker, Token } from "./token-type"
 
-class ExpNode {
+export class ExpNode {
   public op: string
   public left?: ExpNode
   public right?: ExpNode

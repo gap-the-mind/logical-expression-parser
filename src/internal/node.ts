@@ -1,104 +1,61 @@
-import { TokenType, LiteralChecker, Token } from "./token-type"
+import { Reducer } from "./reducer"
 
-export class ExpNode {
-  public op: string
-  public left?: ExpNode
-  public right?: ExpNode
-  public literal?: string
+export abstract class ExpNode {
+  public abstract reduce<R>(reducer: Reducer<R>): R
+}
 
-  constructor(op: string, left?: ExpNode, right?: ExpNode, literal?: string) {
-    this.op = op
-    if (left) {
-      this.left = left
-    }
-    if (right) {
-      this.right = right
-    }
-    if (literal) {
-      this.literal = literal
-    }
+export class NotNode extends ExpNode {
+  private subExp: ExpNode
+
+  constructor(subExp: ExpNode) {
+    super()
+    this.subExp = subExp
   }
 
-  isLiteral() {
-    return this.op === TokenType.LITERAL
-  }
-
-  getLiteralValue() {
-    return this.literal
-  }
-
-  static CreateAnd(left: ExpNode, right: ExpNode) {
-    return new ExpNode(TokenType.AND, left, right)
-  }
-
-  static CreateNot(exp: ExpNode) {
-    return new ExpNode(TokenType.OP_NOT, exp)
-  }
-
-  static CreateOr(left: ExpNode, right: ExpNode) {
-    return new ExpNode(TokenType.OR, left, right)
-  }
-
-  static CreateLiteral(lit: string) {
-    return new ExpNode(TokenType.LITERAL, undefined, undefined, lit)
+  public reduce<R>(reducer: Reducer<R>): R {
+    return reducer.not(this.subExp.reduce(reducer))
   }
 }
 
-// AST generation
-export function make(gen: IterableIterator<Token>): ExpNode {
-  const data = gen.next().value
+export class AndNode extends ExpNode {
+  private left: ExpNode
+  private right: ExpNode
 
-  if (!data) {
-    // TO DO: Throw Syntax Error
-    throw "Syntax Error"
+  constructor(left: ExpNode, right: ExpNode) {
+    super()
+    this.left = left
+    this.right = right
   }
 
-  switch (data.type) {
-    case TokenType.LITERAL:
-      return ExpNode.CreateLiteral(data.value)
-    case TokenType.OP_NOT:
-      return ExpNode.CreateNot(make(gen))
-    case TokenType.AND: {
-      const left = make(gen)
-      const right = make(gen)
-      return ExpNode.CreateAnd(right, left)
-    }
-    case TokenType.OR: {
-      const left = make(gen)
-      const right = make(gen)
-      return ExpNode.CreateOr(right, left)
-    }
+  public reduce<R>(reducer: Reducer<R>): R {
+    return reducer.and(this.left.reduce(reducer), this.right.reduce(reducer))
   }
-
-  throw "Syntax Error"
 }
 
-// AST Evaluation
-export function evaluate(
-  tree: ExpNode,
-  literalEvaluator: LiteralChecker
-): boolean {
-  if (tree.isLiteral()) {
-    return literalEvaluator(tree.getLiteralValue() as string)
+export class OrNode extends ExpNode {
+  private left: ExpNode
+  private right: ExpNode
+
+  constructor(left: ExpNode, right: ExpNode) {
+    super()
+    this.left = left
+    this.right = right
   }
 
-  if (tree.op === TokenType.OP_NOT) {
-    return !evaluate(tree.left as ExpNode, literalEvaluator)
+  public reduce<R>(reducer: Reducer<R>): R {
+    return reducer.or(this.left.reduce(reducer), this.right.reduce(reducer))
+  }
+}
+
+export class LiteralNode extends ExpNode {
+  private literal: string
+
+  constructor(literal: string) {
+    super()
+    this.literal = literal
   }
 
-  if (tree.op === TokenType.OR) {
-    return (
-      evaluate(tree.left as ExpNode, literalEvaluator) ||
-      evaluate(tree.right as ExpNode, literalEvaluator)
-    )
+  public reduce<R>(reducer: Reducer<R>): R {
+    return reducer.litteral(this.literal)
   }
-
-  if (tree.op === TokenType.AND) {
-    return (
-      evaluate(tree.left as ExpNode, literalEvaluator) &&
-      evaluate(tree.right as ExpNode, literalEvaluator)
-    )
-  }
-
-  return false
 }
